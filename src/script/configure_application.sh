@@ -218,12 +218,20 @@ function riak_cs_create_buckets(){
     fi
 }
 
+function riak_cs_enable_v4(){
+    local riakCsConfigPath='/etc/riak-cs/advanced.config'
+
+    perl -i -0pe 's|({riak_cs, \[)|$1\n{auth_v4_enabled, true},|g' $riakCsConfigPath
+}
+
 echo -n "Update data permissions in case it's mounted as volume…"
 chown -R riak:riak /var/lib/riak
 chmod 755 /var/lib/riak
 echo " OK!"
 
 # All services are stopped. Start them first.
+
+riak_cs_enable_v4
 
 basho_service_start 'riak' 'Riak'
 basho_service_start 'stanchion' 'Stanchion'
