@@ -224,6 +224,19 @@ function riak_cs_enable_v4(){
     perl -i -0pe 's|({riak_cs, \[)|$1\n{auth_v4_enabled, true},|g' $riakCsConfigPath
 }
 
+function riak_cs_update_root_host(){
+
+    # Update root_host if the $RIAK_CS_ROOT_HOST variable is defined.
+
+    if [ -v RIAK_CS_ROOT_HOST ]; then
+        echo "Updating Riak CS root_host to: $RIAK_CS_ROOT_HOST"
+
+        perl -i -0pe "s|s3.amazonaws.dev|${RIAK_CS_ROOT_HOST}|g" /etc/riak-cs/advanced.config
+
+    fi
+}
+
+
 echo -n "Update data permissions in case it's mounted as volume…"
 chown -R riak:riak /var/lib/riak
 chmod 755 /var/lib/riak
@@ -232,6 +245,8 @@ echo " OK!"
 # All services are stopped. Start them first.
 
 riak_cs_enable_v4
+
+riak_cs_update_root_host
 
 basho_service_start 'riak' 'Riak'
 basho_service_start 'stanchion' 'Stanchion'
