@@ -26,13 +26,18 @@ function riak_cs_create_bucket(){
 
     echo -n "${bucket}…"
 
+    local bucket_host="s3.amazonaws.dev"
+    if [ -v RIAK_CS_ROOT_HOST ]; then
+        bucket_host=$RIAK_CS_ROOT_HOST
+    fi
+
     local date=$(date -R)
     local signature="$(printf "GET\n\n\n${date}\n/${bucket}/" | openssl sha1 -binary -hmac "${key_secret}" | base64)"
 
     local status_code=$(curl \
         --header "Authorization: AWS ${key_access}:${signature}" \
         --header "Date: ${date}" \
-        --header "Host: ${bucket}.s3.amazonaws.dev" \
+        --header "Host: ${bucket}.${bucket_host}" \
         --insecure \
         --output /dev/null \
         --request GET \
@@ -50,7 +55,7 @@ function riak_cs_create_bucket(){
             --request PUT \
             --header "Authorization: AWS ${key_access}:${signature}" \
             --header "Date: ${date}" \
-            --header "Host: ${bucket}.s3.amazonaws.dev" \
+            --header "Host: ${bucket}.${bucket_host}" \
             --output /dev/null \
             --write-out '%{http_code}' \
             "http://127.0.0.1:8080")
